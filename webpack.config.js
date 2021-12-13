@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-  entry: './src/main.ts',
+  entry: './src/lto-chain-listener.ts',
   devtool: 'inline-source-map',
   mode: 'development',
   module: {
@@ -14,11 +14,15 @@ module.exports = {
     ],
   },
   resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
+    extensions: ['.ts', '.js'],
   },
   output: {
     filename: 'lto-chain-listener.js',
     path: path.resolve(__dirname, 'dist'),
     clean: true,
+    library: 'LTOChainListener',
+    libraryTarget: 'umd',
+    globalObject: 'this',
+    umdNamedDefine: true,
   },
 };

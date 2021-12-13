@@ -4,6 +4,8 @@
     "noImplicitAny": true,
     "module": "es6",
     "target": "es5",
+    "declaration": true,
+    "esModuleInterop": true,
     "moduleResolution": "node",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
@@ -14,5 +16,6 @@
       "app/*": ["*"]
     }
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["./src/**/*.spec.ts", "node_modules", "./dist/"]
 }
