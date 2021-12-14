@@ -1,14 +1,17 @@
 // @todo: this is just a test file, should be removed after it's done (replaced by E2E testing)
-const LTO = require('./dist/lto-chain-listener');
+const LTOChainListener = require('./dist').default;
 
 async function run() {
-  const listener = new LTO.LTOChainListener();
+  const listener = new LTOChainListener({ shouldRetryStart: true });
 
-  console.log('Listener: ', listener);
+  try {
+    console.info('Starting the listener: ', listener);
+    await listener.start();
 
-  await listener.start();
-
-  console.log('Started!');
+    console.info('Started!');
+  } catch (error) {
+    console.log('There was an error, gracefully exiting...');
+  }
 }
 
 run();

@@ -1,28 +1,43 @@
 const path = require('path');
 
-module.exports = {
-  entry: './src/lto-chain-listener.ts',
-  devtool: 'inline-source-map',
-  mode: 'development',
-  module: {
-    rules: [
-      {
-        test: /\.tsx?$/,
-        use: 'ts-loader',
-        exclude: /node_modules/,
+module.exports = (env, options) => {
+  const mode = options.mode ? options.mode : 'development';
+
+  // @todo: maybe we need to set a browser version of the build? this build only works with nodejs
+  const webpackConfig = {
+    mode: mode,
+    name: 'node-server-webpack-config',
+    target: 'node',
+    entry: './src/index.ts',
+    devtool: mode === 'development' ? 'source-map' : false,
+    module: {
+      rules: [
+        {
+          test: /\.tsx?$/,
+          use: 'ts-loader',
+          exclude: /node_modules/,
+        },
+      ],
+    },
+    resolve: {
+      extensions: ['.ts', '.js'],
+    },
+    output: {
+      filename: 'index.js',
+      path: path.resolve(__dirname, 'dist'),
+      clean: true,
+      globalObject: 'this',
+      library: {
+        name: 'LTOChainListener',
+        type: 'umd',
+        umdNamedDefine: true,
       },
-    ],
-  },
-  resolve: {
-    extensions: ['.ts', '.js'],
-  },
-  output: {
-    filename: 'lto-chain-listener.js',
-    path: path.resolve(__dirname, 'dist'),
-    clean: true,
-    library: 'LTOChainListener',
-    libraryTarget: 'umd',
-    globalObject: 'this',
-    umdNamedDefine: true,
-  },
+    },
+    watchOptions: {
+      poll: 1000,
+      ignored: /node_modules/,
+    },
+  };
+
+  return webpackConfig;
 };

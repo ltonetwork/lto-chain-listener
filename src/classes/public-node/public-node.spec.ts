@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
-import { BlockHeightResponse, PublicNode } from './public-node';
+import PublicNode, { BlockHeightResponse } from './public-node';
 
 jest.mock('axios');
 const mockAxios = axios as jest.Mocked<typeof axios>;

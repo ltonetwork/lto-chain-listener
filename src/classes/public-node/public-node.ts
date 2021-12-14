@@ -1,13 +1,13 @@
-import axios, { AxiosInstance, AxiosResponse } from 'axios';
+import axios, { AxiosResponse } from 'axios';
 
 export interface BlockHeightResponse {
   height: number;
 }
 
-export class PublicNode {
+export default class PublicNode {
   constructor(private readonly nodeUrl: string) {}
 
-  async getLastBlockHeight(): Promise<number> {
+  public async getLastBlockHeight(): Promise<number> {
     const response: AxiosResponse<BlockHeightResponse> = await axios.get(`${this.nodeUrl}/blocks/last`);
 
     if (response.status != 200) {

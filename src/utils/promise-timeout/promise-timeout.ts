@@ -2,4 +2,4 @@ function promiseTimeout(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export { promiseTimeout };
+export default promiseTimeout;

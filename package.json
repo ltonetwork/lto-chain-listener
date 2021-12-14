@@ -2,8 +2,10 @@
   "name": "lto-chain-listener",
   "version": "1.0.0",
   "description": "LTO Public Chain listener",
+  "typings": "./dist/lto-chain-listener.d.ts",
   "main": "./dist/lto-chain-listener.js",
   "types": "./dist/lto-chain-listener.d.ts",
+  "module": "system",
   "files": [
     "dist"
   ],
