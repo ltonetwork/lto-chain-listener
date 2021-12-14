@@ -15,7 +15,7 @@ export interface ChainListenerParams {
   shouldRetryStart?: boolean;
 }
 
-export default class LTOChainListener {
+export default class ChainListener {
   private publicNode: PublicNode;
   public options: ChainListenerOptions;
 
