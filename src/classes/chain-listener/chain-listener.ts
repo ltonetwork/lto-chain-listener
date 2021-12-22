@@ -1,9 +1,10 @@
 import Storage from '../storage';
 import PublicNode from '../public-node';
+
 import promiseTimeout from '../../utils/promise-timeout';
 
 export interface ChainListenerOptions {
-  startingBlock: string | number;
+  processingHeight: number;
   publicNodeURL: string;
   processIntervalInMS: number;
   shouldRetryStart: boolean;
@@ -11,7 +12,7 @@ export interface ChainListenerOptions {
 }
 
 export interface ChainListenerParams {
-  startingBlock?: string | number;
+  processingHeight?: number;
   publicNodeURL?: string;
   processIntervalInMS?: number;
   shouldRetryStart?: boolean;
@@ -23,21 +24,23 @@ export default class ChainListener {
   private publicNode: PublicNode;
   public options: ChainListenerOptions;
 
-  private lastBlock: number = 0;
   private started: boolean = false;
   private processing: boolean = false;
 
   constructor(private readonly paramOptions?: ChainListenerParams) {
+    this.storage = new Storage();
+
     this.options = {
-      startingBlock: 'last',
-      publicNodeURL: 'https://testnet.lto.network',
-      processIntervalInMS: 5000,
-      shouldRetryStart: false,
       testingMode: false,
+      shouldRetryStart: false,
+      processIntervalInMS: 5000,
+      publicNodeURL: 'https://testnet.lto.network',
+      processingHeight: this.storage.getItem('processing_height')
+        ? Number(this.storage.getItem('processing_height'))
+        : 1,
       ...this.paramOptions,
     };
 
-    this.storage = new Storage();
     this.publicNode = new PublicNode(this.options.publicNodeURL);
   }
 
@@ -52,13 +55,7 @@ export default class ChainListener {
 
       this.started = true;
 
-      if (this.options.startingBlock === 'last') {
-        this.lastBlock = await this.publicNode.getLastBlockHeight();
-      } else {
-        this.lastBlock = Number(this.options.startingBlock);
-      }
-
-      // @todo: unit test the processing
+      // @todo: test the `process()` flow
       await this.process();
       this.started = true;
     } catch (error) {
@@ -89,32 +86,32 @@ export default class ChainListener {
     }
   }
 
-  // @todo: finish this method
   private async checkNewBlocks(): Promise<void> {
     this.processing = true;
 
     const blockHeight = await this.publicNode.getLastBlockHeight();
-    const processingHeight = (await this.storage.get('processing_height')) || this.lastBlock;
 
-    // @todo: remove these debug logs
     console.debug(`chain-listener: blockHeight: ${blockHeight}`);
-    console.debug(`chain-listener: processingHeight: ${processingHeight}`);
+    console.debug(`chain-listener: processingHeight: ${this.options.processingHeight}`);
 
-    // @todo: make getBlockRanges
-    // const ranges = this.publicNode.getBlockRanges(processingHeight, blockHeight);
+    const ranges = this.publicNode.getRangesList(this.options.processingHeight, blockHeight);
 
-    // for (const range of ranges) {
-    //   console.info(`chain-listener: processing blocks ${range.from} to ${range.to}`);
-    //   // @todo: make getBlocks
-    //   const blocks = await this.publicNode.getBlocks(range.from, range.to);
+    console.debug(`chain-listener: ranges: ${JSON.stringify(ranges)}`);
 
-    //   for (const block of blocks) {
-    //     // @todo: make processBlock
-    //     await this.processBlock(block);
-    //   }
+    for (const range of ranges) {
+      console.info(`chain-listener: processing blocks ${range.from} to ${range.to}`);
 
-    //   await this.storage.put('processing_height', range.to);
-    // }
+      const blocks = await this.publicNode.getBlocks(range.from, range.to);
+
+      for (const block of blocks) {
+        console.debug(`chain-listener: processing block ${block.height}`, block);
+        // for (const transaction of block.transactions) {
+        //   // @todo: trigger an event here for each transaction
+        // }
+      }
+
+      this.storage.setItem('processing_height', range.to);
+    }
 
     this.processing = false;
   }

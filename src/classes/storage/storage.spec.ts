@@ -27,12 +27,12 @@ describe('storage', () => {
     });
   });
 
-  describe('get()', () => {
+  describe('getItem()', () => {
     test('should return the result from storage', async () => {
       LocalStorage.prototype.getItem = jest.fn().mockImplementation(() => 'some-value');
 
       const storage = new Storage();
-      const result = storage.get('some-key');
+      const result = storage.getItem('some-key');
 
       expect(LocalStorage.prototype.getItem).toHaveBeenNthCalledWith(1, 'some-key');
       expect(result).toBe('some-value');
@@ -45,30 +45,30 @@ describe('storage', () => {
 
       try {
         const storage = new Storage();
-        storage.get('some-key');
+        storage.getItem('some-key');
       } catch (error) {
         expect(error).toStrictEqual(new Error('some-bad-error'));
       }
     });
   });
 
-  describe('put()', () => {
+  describe('setItem()', () => {
     test('should put a value in the storage', async () => {
       LocalStorage.prototype.setItem = jest.fn().mockImplementation(() => {});
 
       const storage = new Storage();
-      storage.put('some-key', 'some-value');
+      storage.setItem('some-key', 'some-value');
 
       expect(LocalStorage.prototype.setItem).toHaveBeenNthCalledWith(1, 'some-key', 'some-value');
     });
   });
 
-  describe('del()', () => {
+  describe('removeItem()', () => {
     test('should delete a value from the storage', async () => {
       LocalStorage.prototype.removeItem = jest.fn().mockImplementation(() => {});
 
       const storage = new Storage();
-      storage.del('some-key');
+      storage.removeItem('some-key');
 
       expect(LocalStorage.prototype.removeItem).toHaveBeenNthCalledWith(1, 'some-key');
     });

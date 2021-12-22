@@ -7,15 +7,15 @@ export default class Storage {
     this.storage = new LocalStorage(storageName);
   }
 
-  public get(key: string): string | null {
+  public getItem(key: string): string | null {
     return this.storage.getItem(key);
   }
 
-  public put(key: string, value: any): void {
+  public setItem(key: string, value: any): void {
     return this.storage.setItem(key, value);
   }
 
-  public del(key: string): void {
+  public removeItem(key: string): void {
     return this.storage.removeItem(key);
   }
 }
