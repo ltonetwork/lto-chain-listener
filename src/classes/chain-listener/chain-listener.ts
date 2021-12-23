@@ -1,3 +1,6 @@
+import { EventEmitter } from 'events';
+
+import Logger from '../logger';
 import Storage from '../storage';
 import PublicNode from '../public-node';
 
@@ -9,6 +12,7 @@ export interface ChainListenerOptions {
   processIntervalInMS: number;
   shouldRetryStart: boolean;
   testingMode: boolean;
+  logLevel: 'error' | 'warn' | 'info' | 'debug';
 }
 
 export interface ChainListenerParams {
@@ -17,20 +21,25 @@ export interface ChainListenerParams {
   processIntervalInMS?: number;
   shouldRetryStart?: boolean;
   testingMode?: boolean;
+  logLevel?: 'error' | 'warn' | 'info' | 'debug';
 }
 
-export default class ChainListener {
+export default class ChainListener extends EventEmitter {
+  private logger: Logger;
   private storage: Storage;
   private publicNode: PublicNode;
-  public options: ChainListenerOptions;
-
   private started: boolean = false;
   private processing: boolean = false;
 
+  public options: ChainListenerOptions;
+
   constructor(private readonly paramOptions?: ChainListenerParams) {
+    super();
+
     this.storage = new Storage();
 
     this.options = {
+      logLevel: 'info',
       testingMode: false,
       shouldRetryStart: false,
       processIntervalInMS: 5000,
@@ -41,27 +50,27 @@ export default class ChainListener {
       ...this.paramOptions,
     };
 
+    this.logger = new Logger({ level: this.options.logLevel });
     this.publicNode = new PublicNode(this.options.publicNodeURL);
   }
 
   public async start(): Promise<void> {
     try {
-      console.info(`chain-listener: starting listener`);
+      this.logger.info(`chain-listener: starting listener`);
 
       if (this.started) {
-        console.warn(`chain-listener: listener already started`);
+        this.logger.warn(`chain-listener: listener already started`);
         return;
       }
 
       this.started = true;
 
-      // @todo: test the `process()` flow
       await this.process();
       this.started = true;
     } catch (error) {
       this.started = false;
       this.processing = false;
-      console.error(`chain-listener: error starting listener: ${error}`);
+      this.logger.error(`chain-listener: error starting listener: ${error}`);
 
       if (this.options.shouldRetryStart === true) {
         await promiseTimeout(this.options.processIntervalInMS);
@@ -90,24 +99,22 @@ export default class ChainListener {
     this.processing = true;
 
     const blockHeight = await this.publicNode.getLastBlockHeight();
-
-    console.debug(`chain-listener: blockHeight: ${blockHeight}`);
-    console.debug(`chain-listener: processingHeight: ${this.options.processingHeight}`);
-
     const ranges = this.publicNode.getRangesList(this.options.processingHeight, blockHeight);
 
-    console.debug(`chain-listener: ranges: ${JSON.stringify(ranges)}`);
+    this.logger.debug(`chain-listener: last block height ${blockHeight}`);
 
     for (const range of ranges) {
-      console.info(`chain-listener: processing blocks ${range.from} to ${range.to}`);
+      this.logger.info(`chain-listener: processing blocks ${range.from} to ${range.to}`);
 
       const blocks = await this.publicNode.getBlocks(range.from, range.to);
 
       for (const block of blocks) {
-        console.debug(`chain-listener: processing block ${block.height}`, block);
-        // for (const transaction of block.transactions) {
-        //   // @todo: trigger an event here for each transaction
-        // }
+        this.logger.debug(`chain-listener: processing block`, block);
+
+        for (const transaction of block.transactions) {
+          this.logger.debug(`chain-listener: new transaction`, transaction);
+          this.emit('new-transaction', transaction);
+        }
       }
 
       this.storage.setItem('processing_height', range.to);

@@ -62,13 +62,14 @@ export default class PublicNode {
 
   public async getBlocks(from: number, to: number): Promise<BlockRangeResponse[]> {
     const ranges = this.getRangesList(from, to);
+
     const promises = ranges.map((eachRange) => {
       return this.getBlocksFromRange(eachRange.from, eachRange.to);
     });
 
     const responses = await Promise.all(promises);
 
-    return responses.sort((a, b) => a.height - b.height);
+    return responses.flat().sort((a, b) => a.height - b.height);
   }
 
   private async getBlocksFromRange(from: number, to: number): Promise<BlockRangeResponse> {
@@ -81,6 +82,6 @@ export default class PublicNode {
       });
     }
 
-    return response.data;
+    return Promise.resolve(response.data);
   }
 }
