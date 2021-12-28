@@ -1,5 +1,5 @@
 {
-  "name": "lto-chain-listener",
+  "name": "@ltonetwork/lto-chain-listener",
   "version": "1.0.0",
   "description": "LTO Public Chain listener",
   "typings": "./dist/index.d.ts",
